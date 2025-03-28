@@ -1,0 +1,43 @@
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .product-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .quantity-field {
+    width: 100px;
+    margin-left: 10px;
+  }
+  
+  .total-section {
+    margin-top: 10px;
+    font-size: 18px;
+  }
+  
+  .full-width {
+    width: 100%;
+  }
+  .mat-form-field {
+    width: 100%;
+  }
+  .discount-field{
+    margin-top: 25px
+  }
+  .mat-icon-button {
+    color: red; /* Red color for the delete button */
+  }
+  table {
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  input[type='number'] {
+    width: 60px;
+    padding: 5px;
+  }
