@@ -135,22 +135,26 @@ export class InvoiceGenerateComponent {
   }
 
   onProductSelected(product: Product): void {
-  const currentProducts = this.selectedProductsSubject.getValue();
-  const existingProduct = currentProducts.find(
-    (p) => p.productID === product.productID
-  );
-
-  if (existingProduct) {
-    if (existingProduct.quantity && existingProduct.quantity < existingProduct.stockQuantity) {
-      existingProduct.quantity += 1;
+    if (product.stockQuantity === 0) {
+      this.toastr.error(`${product.productName} is out of stock.`);
+      return;
     }
-  } else {
-    currentProducts.push({ ...product, quantity: 1 });
+    const currentProducts = this.selectedProductsSubject.getValue();
+    const existingProduct = currentProducts.find(
+      (p) => p.productID === product.productID
+    );
+
+    if (existingProduct) {
+      if (existingProduct.quantity && existingProduct.quantity < existingProduct.stockQuantity) {
+        existingProduct.quantity += 1;
+      }
+    } else {
+      currentProducts.push({ ...product, quantity: 1 });
+    }
+    this.selectedProductsSubject.next(currentProducts);
+    console.log('Updated selectedProducts:', currentProducts);
+    this.productSearchControl.setValue('');
   }
-  this.selectedProductsSubject.next(currentProducts);
-  console.log('Updated selectedProducts:', currentProducts);
-  this.productSearchControl.setValue('');
-}
 
   get discount(): number {
     return this._discount;

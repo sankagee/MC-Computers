@@ -16,8 +16,8 @@
     <mat-form-field appearance="fill" class="full-width">
       <input matInput placeholder="Search Product" [formControl]="productSearchControl" [matAutocomplete]="productAuto" (focus)="onProductFieldFocus()">
       <mat-autocomplete #productAuto="matAutocomplete" (optionSelected)="onProductSelected($event.option.value)">
-        <mat-option *ngFor="let product of filteredProducts" [value]="product">
-          {{ product.productName }} - ${{ product.price }} (Stock: {{ product.stockQuantity }})
+        <mat-option *ngFor="let product of filteredProducts" [value]="product" [disabled]="product.stockQuantity === 0">
+          {{ product.productName }} - ${{ product.price }} (Stock: {{ product.stockQuantity === 0 ? 'Out of Stock' : product.stockQuantity }})
         </mat-option>
       </mat-autocomplete>
     </mat-form-field>
