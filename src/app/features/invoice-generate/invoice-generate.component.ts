@@ -2,8 +2,10 @@ import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { BehaviorSubject, map, Observable, startWith } from 'rxjs';
+import { InvoiceDialogComponent } from 'src/app/Popups/invoice-dialog/invoice-dialog.component';
 import { Customer, DataService, Product } from 'src/app/services/data.service';
-
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from 'src/app/Popups/confirm-dialog/confirm-dialog.component';
 @Component({
   selector: 'app-invoice-generate',
   templateUrl: './invoice-generate.component.html',
@@ -26,7 +28,8 @@ export class InvoiceGenerateComponent {
   constructor(
     private dataService: DataService, 
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private dialog: MatDialog,
   ) {
     
   }
@@ -88,14 +91,14 @@ export class InvoiceGenerateComponent {
   }
 
   filterCustomers(value: string | null): Customer[] {
-    const filterValue = value?.toLowerCase() || '';
+    const filterValue = (value || '').toString().toLowerCase();
     return this.customers.filter((customer) =>
       customer.cus_Name.toLowerCase().includes(filterValue)
     );
   }
 
-  filterProducts(value: any): any[] {
-    const filterValue = value?.toLowerCase() || '';
+  filterProducts(value: string | null): Product[] {
+    const filterValue = (value || '').toString().toLowerCase();
     return this.products.filter((product) =>
       product.productName.toLowerCase().includes(filterValue)
     );
@@ -186,7 +189,6 @@ export class InvoiceGenerateComponent {
     this._applyDiscount = value;
   }
 
-  // Getter for total amount
   get totalAmount(): string {
     const currentProducts = this.selectedProductsSubject.getValue();
     const total = currentProducts.reduce(
@@ -196,7 +198,6 @@ export class InvoiceGenerateComponent {
     return total.toFixed(2);
   }
 
-  // Getter for discount amount
   get discountAmount(): string {
     if (this.applyDiscount) {
       const discount = (this.discount / 100) * parseFloat(this.totalAmount);
@@ -205,7 +206,6 @@ export class InvoiceGenerateComponent {
     return '0.00';
   }
 
-  // Getter for balance amount
   get balanceAmount(): string {
     const total = parseFloat(this.totalAmount);
     const discount = parseFloat(this.discountAmount);
@@ -234,40 +234,51 @@ export class InvoiceGenerateComponent {
       this.toastr.error('Please add at least one product Before Generate the Invoice');
       return;
     }
-    // Prepare the request payload
-    const invoiceData = {
-      CustomerName: this.customerSearchControl.value,
-      TotalAmount: this.totalAmount,
-      Discount: this.discountAmount,
-      BalanceAmount: this.balanceAmount,
-      Products: currentProducts.map(product => ({
-        ProductID: product.productID,
-        Quantity: product.quantity,
-        Price: product.price
-      }))
-    };
 
-    // Call the API via the service
-    this.dataService.generateInvoice(invoiceData).subscribe({
-      next: (response: any) => {
-        this.toastr.success(response.Message || 'Invoice generated successfully!');
-        console.log('Invoice Data:', response);
-        this.clearForm();
-        this.loadProducts();
-      },
-      error: (error) => {
-        this.toastr.error('Failed to generate invoice. Please try again.');
-        console.error('Error generating invoice:', error);
+    if (this.applyDiscount && (this.discount === null || this.discount === 0)) {
+      this.toastr.error('Please enter a valid discount percentage greater than 0.');
+      return;
+    }
+
+    this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+    }).afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        // Set request payload
+        const invoiceData = {
+          CustomerName: this.customerSearchControl.value,
+          TotalAmount: this.totalAmount,
+          Discount: this.discountAmount,
+          BalanceAmount: this.balanceAmount,
+          Products: currentProducts.map(product => ({
+            ProductID: product.productID,
+            Quantity: product.quantity,
+            Price: product.price
+          }))
+        };
+
+        // Call the API via the service
+        this.dataService.generateInvoice(invoiceData).subscribe({
+          next: (response: any) => {
+            console.log("Response Here :",response)
+            this.dialog.open(InvoiceDialogComponent, {
+              width: '800px',
+              disableClose: true,
+              data: { invoice: response.invoice }
+            });
+            this.clearForm();
+            this.loadProducts();
+          },
+          error: (error) => {
+            this.toastr.error('Failed to generate invoice. Please try again.');
+            console.error('Error generating invoice:', error);
+          }
+        });
       }
     });
-    alert('Invoice generated successfully!');
-    console.log({
-      SelectedProducts: currentProducts,
-      TotalAmount: this.totalAmount,
-      BalanceAmount: this.balanceAmount,
-      DiscountAmount: this.discountAmount
-    });
+    
   }
+
   clearForm(): void {
     this.customerSearchControl.setValue('');
     this.selectedProductsSubject.next([]);

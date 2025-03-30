@@ -18,17 +18,23 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClientModule } from '@angular/common/http';
-import { ToastrModule } from 'ngx-toastr'; // Import ToastrModule
+import { ToastrModule } from 'ngx-toastr';
+import { InvoiceDialogComponent } from './Popups/invoice-dialog/invoice-dialog.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from './Popups/confirm-dialog/confirm-dialog.component';
 @NgModule({
   declarations: [
     AppComponent,
-    InvoiceGenerateComponent
+    InvoiceGenerateComponent,
+    InvoiceDialogComponent,
+    ConfirmDialogComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     MatIconModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatInputModule, 
     MatCardModule,
@@ -43,9 +49,13 @@ import { ToastrModule } from 'ngx-toastr'; // Import ToastrModule
     MatAutocompleteModule,
     HttpClientModule,
     ToastrModule.forRoot({
-      timeOut: 3000, 
-      positionClass: 'toast-top-right', 
-      preventDuplicates: true
+      positionClass: 'toast-top-right', // Position the toastr at the top-right corner
+      preventDuplicates: true,         // Prevent duplicate messages
+      timeOut: 3000,                   // Auto-close after 3 seconds
+      progressBar: true,               // Show a progress bar
+      newestOnTop: true,               // New notifications appear on top
+      enableHtml: true,                // Allow HTML content in messages
+      toastClass: 'custom-toastr',     // Custom CSS class for styling
     }),
   ],
   providers: [],
